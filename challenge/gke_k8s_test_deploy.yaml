@@ -1,0 +1,54 @@
+# test deployment configs
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: test-api
+  template:
+    metadata:
+      labels:
+        component: test-api
+    spec:
+      containers:
+        - name: test-api
+          image: andreasx42/latam-api-challenge:latest
+          ports:
+            - containerPort: 8080
+---
+# test service
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-api-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: test-api
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# ingress for test pod
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /test/api/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: test-api-cluster-ip-service
+                port:
+                  number: 8080

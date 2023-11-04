@@ -1,4 +1,4 @@
-# deployment configs
+# production deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,27 +19,7 @@ spec:
           ports:
             - containerPort: 8080
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: test-api-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      component: test-api
-  template:
-    metadata:
-      labels:
-        component: test-api
-    spec:
-      containers:
-        - name: test-api
-          image: andreasx42/latam-api-challenge:latest
-          ports:
-            - containerPort: 8080
----
-# the clusterip services
+# production service
 apiVersion: v1
 kind: Service
 metadata:
@@ -52,18 +32,7 @@ spec:
     - port: 8080
       targetPort: 8080
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: test-api-cluster-ip-service
-spec:
-  type: ClusterIP
-  selector:
-    component: test-api
-  ports:
-    - port: 8080
-      targetPort: 8080
----
+# ingress for production pod
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -81,12 +50,5 @@ spec:
             backend:
               service:
                 name: api-cluster-ip-service
-                port:
-                  number: 8080
-          - path: /test/api/?(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: test-api-cluster-ip-service
                 port:
                   number: 8080
