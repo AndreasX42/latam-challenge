@@ -71,8 +71,6 @@ class DelayModel:
         # train the XGBClassifier model
         self._model.fit(features, target)
 
-        return
-
     def predict(self, features: pd.DataFrame) -> List[int]:
         """
         Predict delays for new flights.
