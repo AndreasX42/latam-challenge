@@ -4,10 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_run:
-    workflows: ['Continuous Integration']
-    types:
-      - completed
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/latam-api-challenge
