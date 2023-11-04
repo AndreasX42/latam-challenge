@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1.2
+FROM python:latest
+
+# Define workdir
+WORKDIR /api_test
+
+# Copy requirements to image
+COPY ./requirements.txt ./
+COPY ./requirements-test.txt ./
+
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
+RUN pip install --no-cache-dir --upgrade -r ./requirements-test.txt
+
+# Copy all into image
+COPY ./ ./
+
+CMD ["make", "local-tests"]

@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1.2
+FROM python:latest
+
+# Port the app is running on
+EXPOSE 8080
+
+# Define workdir
+WORKDIR /api
+
+# Copy requirements to image
+COPY ./requirements.txt ./
+
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
+
+# Copy all into image
+COPY ./ ./
+
+CMD ["uvicorn", "challenge:app", "--host", "0.0.0.0", "--port", "8080"]
