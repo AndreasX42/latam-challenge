@@ -13,6 +13,7 @@ app = FastAPI(
     title="FastAPI",
     version="0.01",
     description="""API for LATAM Challenge""",
+    root_path="/api",
 )
 
 model_instance: DelayModel = None
