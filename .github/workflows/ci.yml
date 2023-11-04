@@ -1,0 +1,111 @@
+name: 'Continuous Integration'
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/latam-api-challenge
+
+jobs:
+  
+  # run model-test, api-test and push api to docker hub
+  model-and-api-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Build and run tests
+      run: |
+        docker build -f $GITHUB_WORKSPACE/Dockerfile.localtest -t app-tester .
+        docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports app-tester
+    - name: Upload model test reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: model-test-reports
+        path: reports/model/
+    - name: Upload API test reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: api-test-reports
+        path: reports/api/
+
+  push-docker-image:
+    needs: model-and-api-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Build and push docker image
+        run: |
+          docker build -t $IMAGE_NAME:${{ github.sha }} -t $IMAGE_NAME:latest -f Dockerfile.prod .
+      - name: Push to Docker Hub
+        run: |
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
+
+  # deploy new api image to test deployment
+  gke-k8s-test-deploy:
+    needs: [model-and-api-tests, push-docker-image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+      - name: Deploy to GKE
+        run: |
+          gcloud components install kubectl
+          gcloud container clusters get-credentials ${{ secrets.GCP_CLUSTER_NAME }} --zone ${{ secrets.GCP_CLUSTER_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
+          kubectl apply -f challenge/gke_k8s_deploy.yaml
+          kubectl set image deployment/test-api-deployment test-api=$IMAGE_NAME:${{ github.sha }}
+          kubectl rollout status deployment/test-api-deployment
+
+  # run stress-test on test deployment
+  stress-test:
+    needs: [model-and-api-tests, push-docker-image, gke-k8s-test-deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build stress test Docker image
+        run: docker build -f Dockerfile.stresstest -t stresstest .
+      - name: Run stress test
+        run: docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports stresstest
+      - name: Upload stress test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: stress-test-report
+          path: reports/stress/
+
+  # create PR on main
+  create-pull-request:
+    needs: [model-and-api-tests, push-docker-image, gke-k8s-test-deploy, stress-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Create Pull Request
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: "main"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: "CI passed on develop: merging to main"
+          pr_body: "CI pipeline has passed and is ready for a new release."
+          pr_label: "automerge"

@@ -1,0 +1,53 @@
+name: 'Continuous Delivery'
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_run:
+    workflows: ['Continuous Integration']
+    types:
+      - completed
+
+env:
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/latam-api-challenge
+
+jobs:
+
+  # auto merge PR on main
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - id: automerge
+        name: automerge
+        uses: "pascalgn/automerge-action@v0.15.6"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_LABELS: "" # TODO: with empty string all open PRs will be merged
+  
+  # deploy api to production k8s deployment
+  gke-k8s-deploy:
+    needs: automerge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+
+      - name: Deploy to GKE
+        run: |
+          gcloud components install kubectl
+          gcloud container clusters get-credentials ${{ secrets.GCP_CLUSTER_NAME }} --zone ${{ secrets.GCP_CLUSTER_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
+          kubectl apply -f challenge/gke_k8s_deploy.yaml
+          kubectl set image deployment/api-deployment api=$IMAGE_NAME:${{ github.sha }}
+          kubectl rollout status deployment/api-deployment
