@@ -10,26 +10,26 @@ env:
 
 jobs:
   
-# # run model-test and api-test
-# model-and-api-tests:
-#   runs-on: ubuntu-latest
-#   steps:
-#   - name: Checkout code
-#     uses: actions/checkout@v3
-#   - name: Build and run tests
-#     run: |
-#       docker build -f $GITHUB_WORKSPACE/Dockerfile.localtest -t app-tester .
-#       docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports app-tester
-#   - name: Upload model test reports
-#     uses: actions/upload-artifact@v3
-#     with:
-#       name: model-test-reports
-#       path: reports/model/
-#   - name: Upload API test reports
-#     uses: actions/upload-artifact@v3
-#     with:
-#       name: api-test-reports
-#       path: reports/api/
+  # run model-test and api-test
+ #model-and-api-tests:
+ #  runs-on: ubuntu-latest
+ #  steps:
+ #  - name: Checkout code
+ #    uses: actions/checkout@v3
+ #  - name: Build and run tests
+ #    run: |
+ #      docker build -f $GITHUB_WORKSPACE/Dockerfile.localtest -t app-tester .
+ #      docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports app-tester
+ #  - name: Upload model test reports
+ #    uses: actions/upload-artifact@v3
+ #    with:
+ #      name: model-test-reports
+ #      path: reports/model/
+ #  - name: Upload API test reports
+ #    uses: actions/upload-artifact@v3
+ #    with:
+ #      name: api-test-reports
+ #      path: reports/api/
 
   # build and push API to Docker Hub, one image with tag corresponding to latest git commit sha and one image with tag 'latest'
   push-docker-image:
@@ -45,11 +45,11 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Build and push docker image
         run: |
-          docker build -t $IMAGE_NAME:dev-${{ github.run_number }} -t $IMAGE_NAME:dev-latest -f Dockerfile.prod .
+          docker build -t $IMAGE_NAME:dev-${{ github.run_number }} -t $IMAGE_NAME:latest -f Dockerfile.prod .
       - name: Push to Docker Hub
         run: |
           docker push $IMAGE_NAME:dev-${{ github.run_number }}
-          docker push $IMAGE_NAME:dev-latest
+          docker push $IMAGE_NAME:latest
 
   # deploy new api image to test deployment pod
   gke-k8s-test-deploy:
@@ -71,7 +71,7 @@ jobs:
         run: |
           gcloud components install kubectl
           gcloud container clusters get-credentials ${{ secrets.GCP_CLUSTER_NAME }} --zone ${{ secrets.GCP_CLUSTER_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
-          kubectl apply -f challenge/gke_k8s_test_deploy.yaml
+          kubectl apply -f challenge/gke_k8s_deploy.yaml
           kubectl set image deployment/test-api-deployment test-api=$IMAGE_NAME:dev-${{ github.run_number }}
           kubectl rollout status deployment/test-api-deployment
           kubectl describe pod test-api-deployment

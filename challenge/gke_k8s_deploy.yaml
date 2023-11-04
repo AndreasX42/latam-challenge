@@ -1,4 +1,24 @@
-# test deployment configs
+# deployment configs
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: api
+  template:
+    metadata:
+      labels:
+        component: api
+    spec:
+      containers:
+        - name: api
+          image: andreasx42/latam-api-challenge:latest
+          ports:
+            - containerPort: 8080
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,11 +35,23 @@ spec:
     spec:
       containers:
         - name: test-api
-          image: andreasx42/latam-api-challenge:dev-latest
+          image: andreasx42/latam-api-challenge:latest
           ports:
             - containerPort: 8080
 ---
-# test service
+# the clusterip services
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: api
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -32,11 +64,10 @@ spec:
     - port: 8080
       targetPort: 8080
 ---
-# ingress service for test pod
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: test-ingress-service
+  name: ingress-service
   annotations:
     nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /$1
@@ -45,7 +76,14 @@ spec:
   rules:
     - http:
         paths:
-          - path: /test/?(.*)
+          - path: /api/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-cluster-ip-service
+                port:
+                  number: 8080
+          - path: /test/api/?(.*)
             pathType: ImplementationSpecific
             backend:
               service:
