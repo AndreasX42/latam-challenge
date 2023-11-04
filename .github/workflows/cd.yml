@@ -42,7 +42,7 @@ jobs:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v1'
-      # pull 'latest' image from Docker Hub, retag it as production image and use it for k8s deployment
+      # pull 'latest' image from Docker Hub, retag it as production image and use it for deployment
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
