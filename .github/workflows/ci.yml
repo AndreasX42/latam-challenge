@@ -74,7 +74,7 @@ jobs:
           kubectl apply -f challenge/gke_k8s_deploy_test.yaml
           kubectl set image deployment/test-api-deployment test-api=$IMAGE_NAME:dev-${{ github.run_number }}
           kubectl rollout status deployment/test-api-deployment
-          kubectl describe test-api-deployment
+          kubectl describe pod test-api-deployment
 
   # run stress-test on test deployment pod
   stress-test:
