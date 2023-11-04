@@ -24,7 +24,7 @@ async def get_health() -> dict:
 
 
 # Using pydantic for request validation
-class SingleFlightRequest(BaseModel):
+class SingleFlightPredictionRequest(BaseModel):
     """Model for a single flight request"""
 
     TIPOVUELO: Literal["N", "I"]
@@ -59,7 +59,7 @@ class SingleFlightRequest(BaseModel):
 class ExpectedPredictionRequest(BaseModel):
     """Overall model for an '/predict' endpoint call"""
 
-    flights: list[SingleFlightRequest]
+    flights: list[SingleFlightPredictionRequest]
 
 
 def get_model():
