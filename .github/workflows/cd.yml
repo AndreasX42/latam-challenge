@@ -1,9 +1,12 @@
 name: 'Continuous Delivery'
 
 on:
-  pull_request:
+  workflow_run:
+    workflows: ['Continuous Integration']
     branches:
-      - main
+      - develop
+    types:
+      - completed
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/latam-api-challenge
@@ -12,6 +15,7 @@ jobs:
 
   # auto merge PR on main
   automerge-pull-request:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - id: automerge
@@ -19,11 +23,12 @@ jobs:
         uses: "pascalgn/automerge-action@v0.15.6"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_LABELS: "" # TODO: with empty string all open PRs will be merged
+          MERGE_LABELS: "automerge"
   
   # deploy api to production k8s deployment
   gke-k8s-deploy:
     needs: automerge-pull-request
+    if: ${{ needs.automerge-pull-request.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
