@@ -29,3 +29,6 @@ Part IV:
   1. When the CI is done and the PR was created we first auto-merge it into main.
   2. We deploy the new API image into our production pod using the 'api-deployment'. Here we use the imperative Kubernetes command 'kubectl set image' to deploy the new API Docker image with the new git commit sha tag into the cluster.
 
+All Docker images that are pushed into Docker Hub can be found here:
+https://hub.docker.com/repository/docker/andreasx42/latam-api-challenge
+
