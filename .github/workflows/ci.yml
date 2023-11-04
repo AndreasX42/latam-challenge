@@ -11,29 +11,29 @@ env:
 jobs:
   
   # run model-test and api-test
- #model-and-api-tests:
- #  runs-on: ubuntu-latest
- #  steps:
- #  - name: Checkout code
- #    uses: actions/checkout@v3
- #  - name: Build and run tests
- #    run: |
- #      docker build -f $GITHUB_WORKSPACE/Dockerfile.localtest -t app-tester .
- #      docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports app-tester
- #  - name: Upload model test reports
- #    uses: actions/upload-artifact@v3
- #    with:
- #      name: model-test-reports
- #      path: reports/model/
- #  - name: Upload API test reports
- #    uses: actions/upload-artifact@v3
- #    with:
- #      name: api-test-reports
- #      path: reports/api/
+  model-and-api-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Build and run tests
+      run: |
+        docker build -f $GITHUB_WORKSPACE/Dockerfile.localtest -t app-tester .
+        docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports app-tester
+    - name: Upload model test reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: model-test-reports
+        path: reports/model/
+    - name: Upload API test reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: api-test-reports
+        path: reports/api/
 
   # build and push API to Docker Hub, one image with tag corresponding to latest git commit sha and one image with tag 'latest'
   push-docker-image:
-    #needs: model-and-api-tests
+    needs: model-and-api-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -53,7 +53,7 @@ jobs:
 
   # deploy new api image to test deployment pod
   gke-k8s-test-deploy:
-    needs: [push-docker-image]
+    needs: [model-and-api-tests, push-docker-image]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -75,29 +75,29 @@ jobs:
           kubectl set image deployment/test-api-deployment test-api=$IMAGE_NAME:dev-${{ github.run_number }}
           kubectl rollout status deployment/test-api-deployment
 
- ## run stress-test on test deployment pod
- #stress-test:
- #  needs: [model-and-api-tests, push-docker-image, gke-k8s-test-deploy]
- #  runs-on: ubuntu-latest
- #  permissions:
- #    contents: read
- #    id-token: write
- #  steps:
- #    - name: Checkout code
- #      uses: actions/checkout@v3
- #    - name: Build stress test Docker image
- #      run: docker build -f Dockerfile.stresstest -t stresstest .
- #    - name: Run stress test
- #      run: docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports stresstest
- #    - name: Upload stress test report
- #      uses: actions/upload-artifact@v3
- #      with:
- #        name: stress-test-report
- #        path: reports/stress/
+  # run stress-test on test deployment pod
+  stress-test:
+    needs: [model-and-api-tests, push-docker-image, gke-k8s-test-deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build stress test Docker image
+        run: docker build -f Dockerfile.stresstest -t stresstest .
+      - name: Run stress test
+        run: docker run -v ${GITHUB_WORKSPACE}/reports:/api_test/reports stresstest
+      - name: Upload stress test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: stress-test-report
+          path: reports/stress/
 
   # create PR on main
   create-pull-request:
-    needs: [push-docker-image, gke-k8s-test-deploy]
+    needs: [model-and-api-tests, push-docker-image, gke-k8s-test-deploy, stress-test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
