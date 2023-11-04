@@ -53,6 +53,8 @@ jobs:
           docker pull $IMAGE_NAME:latest
           docker tag $IMAGE_NAME:latest $IMAGE_NAME:prod-${{ github.run_number }}
           docker push $IMAGE_NAME:prod-${{ github.run_number }}
+          docker tag $IMAGE_NAME:latest $IMAGE_NAME:prod-latest
+          docker push $IMAGE_NAME:prod-latest
       # deploy it to k8s
       - name: Deploy to GKE
         run: |

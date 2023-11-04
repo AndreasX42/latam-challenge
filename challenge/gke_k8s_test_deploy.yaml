@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: test-api
-          image: andreasx42/latam-api-challenge:latest
+          image: andreasx42/latam-api-challenge:dev-latest
           ports:
             - containerPort: 8080
 ---
@@ -45,7 +45,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /test/api/?(.*)
+          - path: /test/?(.*)
             pathType: ImplementationSpecific
             backend:
               service:

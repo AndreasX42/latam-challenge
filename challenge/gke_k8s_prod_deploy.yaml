@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: andreasx42/latam-api-challenge:latest
+          image: andreasx42/latam-api-challenge:prod-latest
           ports:
             - containerPort: 8080
 ---
