@@ -11,7 +11,7 @@ env:
 jobs:
 
   # auto merge PR on main
-  automerge:
+  automerge-pull-request:
     runs-on: ubuntu-latest
     steps:
       - id: automerge
@@ -23,7 +23,7 @@ jobs:
   
   # deploy api to production k8s deployment
   gke-k8s-deploy:
-    needs: automerge
+    needs: automerge-pull-request
     runs-on: ubuntu-latest
     permissions:
       contents: read

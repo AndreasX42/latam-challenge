@@ -63,7 +63,7 @@ class TestModel(unittest.TestCase):
         assert report["0"]["recall"] < 0.60
         assert report["0"]["f1-score"] < 0.70
         assert report["1"]["recall"] > 0.60
-        assert report["1"]["f1-score"] > 1.30
+        assert report["1"]["f1-score"] > 0.30
 
     def test_model_predict(self):
         # first fit the model again
