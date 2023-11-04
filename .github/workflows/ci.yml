@@ -10,7 +10,7 @@ env:
 
 jobs:
   
-  # run model-test, api-test and push api to docker hub
+  # run model-test and api-test
   model-and-api-tests:
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +31,7 @@ jobs:
         name: api-test-reports
         path: reports/api/
 
+  # build and push API to Docker Hub, one image with tag corresponding to latest git commit sha and one image with tag 'latest'
   push-docker-image:
     needs: model-and-api-tests
     runs-on: ubuntu-latest
@@ -50,7 +51,7 @@ jobs:
           docker push $IMAGE_NAME:${{ github.sha }}
           docker push $IMAGE_NAME:latest
 
-  # deploy new api image to test deployment
+  # deploy new api image to test deployment pod
   gke-k8s-test-deploy:
     needs: [model-and-api-tests, push-docker-image]
     runs-on: ubuntu-latest
@@ -74,7 +75,7 @@ jobs:
           kubectl set image deployment/test-api-deployment test-api=$IMAGE_NAME:${{ github.sha }}
           kubectl rollout status deployment/test-api-deployment
 
-  # run stress-test on test deployment
+  # run stress-test on test deployment pod
   stress-test:
     needs: [model-and-api-tests, push-docker-image, gke-k8s-test-deploy]
     runs-on: ubuntu-latest

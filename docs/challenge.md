@@ -8,7 +8,7 @@ Part I:
 Part II:
 - We use pydantic to validate each request. Every '/predict' request should be a list of 
   SingleFlightPredictionRequests, where we check that 'TIPOVUELO', 'MES' and 'OPERA' attributes
-  are in expected range. If not we return status code '400' using the 'validation_exception_handler'
+  are in the expected range. If not we return status code '400' using the 'validation_exception_handler'
 
 Part III:
 - For providing the API endpoints we use the Google Kubernetes Engine and set up a Kubernetes cluster.
