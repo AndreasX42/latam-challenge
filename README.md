@@ -1,5 +1,8 @@
 # Software Engineer (ML & LLMs) Challenge
 
+[![Continuous Integration](https://github.com/AndreasX42/latam-challenge/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/AndreasX42/latam-challenge/actions/workflows/ci.yml)
+[![Continuous Delivery](https://github.com/AndreasX42/latam-challenge/actions/workflows/cd.yml/badge.svg?branch=main)](https://github.com/AndreasX42/latam-challenge/actions/workflows/cd.yml)
+
 ## Overview
 
 Welcome to the **Software Engineer (ML & LLMs)** Application Challenge. In this, you will have the opportunity to get closer to a part of the reality of the role, and demonstrate your skills and knowledge in machine learning and cloud.
