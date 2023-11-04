@@ -32,7 +32,7 @@ spec:
     - port: 8080
       targetPort: 8080
 ---
-# ingress for test pod
+# ingress service for test pod
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
