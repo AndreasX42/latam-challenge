@@ -19,6 +19,26 @@ spec:
           ports:
             - containerPort: 8080
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-api-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: test-api
+  template:
+    metadata:
+      labels:
+        component: test-api
+    spec:
+      containers:
+        - name: test-api
+          image: andreasx42/latam-api-challenge:latest
+          ports:
+            - containerPort: 8080
+---
 # the clusterip services
 apiVersion: v1
 kind: Service
@@ -28,6 +48,18 @@ spec:
   type: ClusterIP
   selector:
     component: api
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-api-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: test-api
   ports:
     - port: 8080
       targetPort: 8080
