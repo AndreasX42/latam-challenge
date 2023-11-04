@@ -71,7 +71,7 @@ jobs:
         run: |
           gcloud components install kubectl
           gcloud container clusters get-credentials ${{ secrets.GCP_CLUSTER_NAME }} --zone ${{ secrets.GCP_CLUSTER_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
-          kubectl apply -f challenge/gke_k8s_deploy.yaml
+          kubectl apply -f challenge/gke_k8s_deploy_test.yaml
           kubectl set image deployment/test-api-deployment test-api=$IMAGE_NAME:dev-${{ github.run_number }}
           kubectl rollout status deployment/test-api-deployment
 
