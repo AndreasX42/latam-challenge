@@ -7,6 +7,7 @@
 **.md
 
 # Byte-compiled / optimized / DLL files
+**/Dockerfile*
 **/__pycache__
 **/*.pyc
 **.py[cod]
@@ -24,6 +25,6 @@ venv*/
 ENV*/
 
 # misc
-_MACOSX/
+__MACOSX/
 workflows/
 docs/
