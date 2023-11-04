@@ -61,4 +61,3 @@ jobs:
           kubectl apply -f challenge/gke_k8s_deploy.yaml
           kubectl set image deployment/api-deployment api=$IMAGE_NAME:prod-${{ github.run_number }}
           kubectl rollout status deployment/api-deployment
-          kubectl describe pod api-deployment
