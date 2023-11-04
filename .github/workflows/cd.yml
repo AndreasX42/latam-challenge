@@ -42,7 +42,7 @@ jobs:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v1'
-      # pull 'latest' image from Docker Hub, retag it as production image and use it for k8s production deployment
+      # pull 'latest' image from Docker Hub, retag it as production image and use it for k8s deployment
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -53,14 +53,12 @@ jobs:
           docker pull $IMAGE_NAME:latest
           docker tag $IMAGE_NAME:latest $IMAGE_NAME:prod-${{ github.run_number }}
           docker push $IMAGE_NAME:prod-${{ github.run_number }}
-          docker tag $IMAGE_NAME:latest $IMAGE_NAME:prod-latest
-          docker push $IMAGE_NAME:prod-latest
       # deploy it to k8s
       - name: Deploy to GKE
         run: |
           gcloud components install kubectl
           gcloud container clusters get-credentials ${{ secrets.GCP_CLUSTER_NAME }} --zone ${{ secrets.GCP_CLUSTER_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
-          kubectl apply -f challenge/gke_k8s_prod_deploy.yaml
+          kubectl apply -f challenge/gke_k8s_deploy.yaml
           kubectl set image deployment/api-deployment api=$IMAGE_NAME:prod-${{ github.run_number }}
           kubectl rollout status deployment/api-deployment
           kubectl describe pod api-deployment

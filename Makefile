@@ -23,7 +23,7 @@ install:		## Install dependencies
 	pip install -r requirements-test.txt
 	pip install -r requirements.txt
 
-STRESS_URL = http://34.42.13.236/test
+STRESS_URL = http://34.42.13.236/test/api
 .PHONY: stress-test
 stress-test:
 	# change stress url to your deployed app 
